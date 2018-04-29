@@ -10,7 +10,10 @@
     <version>SNAPSHOT-1.0</version>
     <modules>
         <module>core</module>
+        <module>persistence</module>
+        <module>webapp</module>
     </modules>
+    <name>Revolut accounts</name>
 
     <build>
         <pluginManagement>
