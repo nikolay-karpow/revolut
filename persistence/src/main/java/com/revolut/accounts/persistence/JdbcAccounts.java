@@ -7,12 +7,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class JdbcAccounts implements Accounts {
-    private static final String SAVE_NEW_ACCOUNT = "INSERT INTO ACCOUNT (ID, BALANCE) VALUES (?, ?)";
-    private static final String FIND_BY_ID = "SELECT * FROM ACCOUNT WHERE ID=?";
-    private static final String SELECT_ALL = "SELECT * FROM ACCOUNT";
+    private static final String SAVE_NEW_ACCOUNT =
+            "INSERT INTO ACCOUNT (ID, VERSION, BALANCE) VALUES (?, ?, ?)";
+    private static final String UPDATE_ACCOUNT =
+            "UPDATE ACCOUNT SET BALANCE=?, VERSION=? WHERE ID=? AND VERSION=?";
+    private static final String FIND_BY_ID =
+            "SELECT * FROM ACCOUNT WHERE ID=?";
+    private static final String SELECT_ALL =
+            "SELECT * FROM ACCOUNT";
     private final DataSource dataSource;
 
     public JdbcAccounts(DataSource dataSource) {
@@ -49,18 +56,38 @@ public class JdbcAccounts implements Accounts {
     }
 
     @Override
-    public void save(Account account) {
-        execute(SAVE_NEW_ACCOUNT, statement -> {
+    public Account save(Account account) {
+        return execute(SAVE_NEW_ACCOUNT, statement -> {
             statement.setObject(1, account.id());
-            statement.setObject(2, account.balance().asLong());
+            statement.setInt(2, account.version());
+            statement.setObject(3, account.balance().asLong());
             statement.execute();
-            return null;
+            return account;
+        });
+    }
+
+    @Override
+    public Account update(Account account) {
+        return execute(UPDATE_ACCOUNT, statement -> {
+            int oldVersion = account.version();
+            int newVersion = oldVersion + 1;
+            statement.setLong(1, account.balance().asLong());
+            statement.setInt(2, newVersion);
+            statement.setObject(3, account.id());
+            statement.setInt(4, oldVersion);
+            int updatedCount = statement.executeUpdate();
+            if (updatedCount == 1) {
+                return new Account(account.id(), newVersion, account.balance());
+            } else {
+                throw new AccountOptimisticLockException(account.id());
+            }
         });
     }
 
     private Account createAccountFromResultSet(ResultSet resultSet) throws SQLException {
         return new Account(
                 (UUID) resultSet.getObject("ID"),
+                resultSet.getInt("VERSION"),
                 new Money(resultSet.getLong("BALANCE"))
         );
     }

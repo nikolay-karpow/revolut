@@ -4,15 +4,17 @@ import java.util.UUID;
 
 public class Account {
     private final UUID id;
+    private final int version;
     private Money balance;
 
     public Account(Money balance) {
-        this(UUID.randomUUID(), balance);
+        this(UUID.randomUUID(), 0, balance);
     }
 
-    public Account(UUID id, Money balance) {
+    public Account(UUID id, int version, Money balance) {
         this.id = id;
         this.balance = balance;
+        this.version = version;
     }
 
     public Money balance() {
@@ -27,15 +29,19 @@ public class Account {
         withdraw(amount);
     }
 
-    private void withdraw(Money amount) {
+    public void withdraw(Money amount) {
         balance = balance.minus(amount);
     }
 
-    private void deposit(Money amount) {
+    public void deposit(Money amount) {
         balance = balance.plus(amount);
     }
 
     public UUID id() {
         return id;
+    }
+
+    public int version() {
+        return version;
     }
 }

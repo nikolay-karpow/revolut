@@ -6,5 +6,6 @@ import java.util.UUID;
 public interface Accounts {
     Account find(UUID id);
     List<Account> findAll();
-    void save(Account account);
+    Account save(Account account);
+    Account update(Account account);
 }
