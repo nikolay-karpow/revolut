@@ -21,4 +21,8 @@ public class Money {
     public boolean isLessThan(Money other) {
         return cents < other.cents;
     }
+
+    public long asLong() {
+        return cents;
+    }
 }
