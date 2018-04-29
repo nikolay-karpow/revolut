@@ -1,6 +1,5 @@
 package com.revolut.accounts.core;
 
-import com.revolute.accounts.core.Money;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

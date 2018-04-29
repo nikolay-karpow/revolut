@@ -1,8 +1,5 @@
 package com.revolut.accounts.core;
 
-import com.revolute.accounts.core.Account;
-import com.revolute.accounts.core.AccountException;
-import com.revolute.accounts.core.Money;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

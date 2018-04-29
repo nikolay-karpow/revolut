@@ -1,9 +1,17 @@
-package com.revolute.accounts.core;
+package com.revolut.accounts.core;
+
+import java.util.UUID;
 
 public class Account {
+    private final UUID id;
     private Money balance;
 
     public Account(Money balance) {
+        this(UUID.randomUUID(), balance);
+    }
+
+    public Account(UUID id, Money balance) {
+        this.id = id;
         this.balance = balance;
     }
 
@@ -25,5 +33,9 @@ public class Account {
 
     private void deposit(Money amount) {
         balance = balance.plus(amount);
+    }
+
+    public UUID id() {
+        return id;
     }
 }

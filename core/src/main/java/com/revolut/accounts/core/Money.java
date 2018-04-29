@@ -1,4 +1,4 @@
-package com.revolute.accounts.core;
+package com.revolut.accounts.core;
 
 import lombok.EqualsAndHashCode;
 
