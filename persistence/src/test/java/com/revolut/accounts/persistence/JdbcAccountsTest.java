@@ -1,7 +1,6 @@
 package com.revolut.accounts.persistence;
 
 import com.revolut.accounts.core.*;
-import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -11,8 +10,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static com.revolut.accounts.persistence.DataSourceFactory.createDataSource;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class JdbcAccountsTest {
 
@@ -21,7 +22,7 @@ public class JdbcAccountsTest {
 
     @Test
     public void canSaveNewAccount() {
-        Accounts accounts = createAccounts();
+        Accounts accounts = accounts();
 
         Account account = accounts.save(new Account(new Money(654)));
 
@@ -32,7 +33,7 @@ public class JdbcAccountsTest {
 
     @Test
     public void canUpdateExistingAccount() {
-        Accounts accounts = createAccounts();
+        Accounts accounts = accounts();
 
         Account account = accounts.save(new Account(new Money(654)));
         account.deposit(new Money(100));
@@ -43,7 +44,7 @@ public class JdbcAccountsTest {
 
     @Test
     public void updateIncreasesAccountVersion() {
-        Accounts accounts = createAccounts();
+        Accounts accounts = accounts();
 
         Account account = accounts.save(new Account(new Money(654)));
         account.deposit(new Money(100));
@@ -54,24 +55,31 @@ public class JdbcAccountsTest {
     }
 
     @Test
-    public void throwsIfAccountWasChangedDuringUpdate() {
-        Accounts accounts = createAccounts();
-
+    public void throwsIfAccountWasChangedDuringUpdate() throws InterruptedException {
+        Accounts accounts = accounts();
         Account original = accounts.save(new Account(new Money(654)));
-        Account copy = accounts.find(original.id());
-        copy.deposit(new Money(700));
-        accounts.update(copy);
-        original.deposit(new Money(100));
 
-        expectedException.expect(AccountOptimisticLockException.class);
-        expectedException.expectMessage("Account [" + original.id() + "] optimistic lock exception");
-        accounts.update(original);
-        assertThat(accounts.find(original.id()).balance()).isEqualTo(new Money(1354));
+        Thread thread = new Thread(() -> {
+            Account copy = accounts.find(original.id());
+            copy.deposit(new Money(700));
+            accounts.update(copy);
+        });
+        thread.start();
+        thread.join();
+
+        try {
+            original.deposit(new Money(100));
+            accounts.update(original);
+            fail("Must not be executed");
+        } catch (AccountOptimisticLockException e) {
+            assertThat(e.getMessage()).isEqualTo("Account [" + original.id() + "] optimistic lock exception");
+            assertThat(accounts.find(original.id()).balance()).isEqualTo(new Money(1354));
+        }
     }
 
     @Test
     public void canFindAccountById() {
-        Accounts accounts = createAccounts();
+        Accounts accounts = accounts();
         Account first = accounts.save(new Account(new Money(100)));
         accounts.save(new Account(new Money(500)));
 
@@ -83,7 +91,7 @@ public class JdbcAccountsTest {
 
     @Test
     public void findThrowsWhenAccountDoesNotExist() {
-        Accounts accounts = createAccounts();
+        Accounts accounts = accounts();
         UUID id = UUID.randomUUID();
         expectedException.expect(AccountNotFoundException.class);
         expectedException.expectMessage("Account [" + id + "] is not found");
@@ -92,7 +100,7 @@ public class JdbcAccountsTest {
 
     @Test
     public void findAllReturnsAllSavedAccounts() {
-        Accounts accounts = createAccounts();
+        Accounts accounts = accounts();
         Account first = accounts.save(new Account(new Money(100)));
         Account second = accounts.save(new Account(new Money(500)));
 
@@ -104,13 +112,12 @@ public class JdbcAccountsTest {
         assertThat(idToAccount.get(second.id()).balance()).isEqualTo(second.balance());
     }
 
-    private Accounts createAccounts() {
-        JdbcDataSource dataSource = new JdbcDataSource();
-        dataSource.setURL("jdbc:h2:mem:testDb;" +
-                "DB_CLOSE_DELAY=-1;" +
-                "INIT=RUNSCRIPT FROM 'classpath:schema.sql'\\;");
-        dataSource.setUser("sa");
-        dataSource.setPassword("");
-        return new JdbcAccounts(dataSource);
+
+    private Accounts accounts() {
+        return new JdbcAccounts(
+                new ConnectionHolder(
+                        createDataSource()
+                )
+        );
     }
 }

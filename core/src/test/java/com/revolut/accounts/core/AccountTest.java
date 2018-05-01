@@ -1,15 +1,11 @@
 package com.revolut.accounts.core;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class AccountTest {
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void accountCanTellItsBalance() {
@@ -32,10 +28,12 @@ public class AccountTest {
         Account from = new Account(new Money(100));
         Account to = new Account(new Money(70));
 
-        expectedException.expect(AccountException.class);
-        expectedException.expectMessage("There is not enough money for transfer");
-        from.transferTo(to, new Money(270));
-        assertThat(from.balance()).isEqualTo(new Money(100));
-        assertThat(to.balance()).isEqualTo(new Money(70));
+        try {
+            from.transferTo(to, new Money(270));
+            fail("Must not be executed");
+        } catch (AccountException e) {
+            assertThat(from.balance()).isEqualTo(new Money(100));
+            assertThat(to.balance()).isEqualTo(new Money(70));
+        }
     }
 }

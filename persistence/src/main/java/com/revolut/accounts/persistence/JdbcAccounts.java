@@ -2,7 +2,6 @@ package com.revolut.accounts.persistence;
 
 import com.revolut.accounts.core.*;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,10 +19,10 @@ public class JdbcAccounts implements Accounts {
             "SELECT * FROM ACCOUNT WHERE ID=?";
     private static final String SELECT_ALL =
             "SELECT * FROM ACCOUNT";
-    private final DataSource dataSource;
+    private final ConnectionHolder connectionHolder;
 
-    public JdbcAccounts(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public JdbcAccounts(ConnectionHolder connectionHolder) {
+        this.connectionHolder = connectionHolder;
     }
 
     @Override
@@ -98,8 +97,8 @@ public class JdbcAccounts implements Accounts {
     }
 
     private <T> T execute(String sqlQueryTemplate, StatementCallable<T> callable) {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sqlQueryTemplate)) {
+        Connection connection = connectionHolder.getConnection();
+        try (PreparedStatement statement = connection.prepareStatement(sqlQueryTemplate)) {
             return callable.call(statement);
         } catch (SQLException e) {
             throw new AccountException(e);
