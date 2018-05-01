@@ -54,67 +54,17 @@ public class AccountServiceTest {
         Account from = accountService.add(new Account(new Money(1000)));
         Account to = accountService.add(new Account(new Money(100)));
 
-        accountService.transfer(from, to, new Money(200));
+        accountService.transfer(from.id(), to.id(), new Money(200));
 
         assertThat(accountService.get(from.id()).balance()).isEqualTo(new Money(800));
         assertThat(accountService.get(to.id()).balance()).isEqualTo(new Money(300));
     }
 
-    @Test
-    public void transferDoesNotMakeAnyEffect_ifToAccountIsChanged() throws InterruptedException {
-        ConnectionHolder connectionHolder = connectionHolder();
-        Accounts accounts = new JdbcAccounts(connectionHolder);
-        AccountService accountService = new AccountService(connectionHolder, accounts);
-        Account from = accountService.add(new Account(new Money(1000)));
-        Account to = accountService.add(new Account(new Money(100)));
-
-        Thread thread = new Thread(() -> {
-            Account toChanged = accountService.get(to.id());
-            toChanged.deposit(new Money(400));
-            accounts.update(toChanged);
-        });
-        thread.start();
-        thread.join();
-
-        try {
-            accountService.transfer(from, to, new Money(200));
-            fail("Must not be executed");
-        } catch (AccountException e) {
-            assertThat(accountService.get(from.id()).balance()).isEqualTo(new Money(1000));
-            assertThat(accountService.get(to.id()).balance()).isEqualTo(new Money(500));
-        }
-    }
-
-    @Test
-    public void transferDoesNotMakeAnyEffect_ifFromAccountIsChanged() throws InterruptedException {
-        ConnectionHolder connectionHolder = connectionHolder();
-        Accounts accounts = new JdbcAccounts(connectionHolder);
-        AccountService accountService = new AccountService(connectionHolder, accounts);
-        Account from = accountService.add(new Account(new Money(1000)));
-        Account to = accountService.add(new Account(new Money(100)));
-
-        Thread thread = new Thread(() -> {
-            Account fromChanged = accountService.get(from.id());
-            fromChanged.deposit(new Money(400));
-            accounts.update(fromChanged);
-        });
-        thread.start();
-        thread.join();
-
-        try {
-            accountService.transfer(from, to, new Money(200));
-            fail("Must not be executed");
-        } catch (AccountException e) {
-            assertThat(accountService.get(from.id()).balance()).isEqualTo(new Money(1400));
-            assertThat(accountService.get(to.id()).balance()).isEqualTo(new Money(100));
-        }
-    }
-
     private AccountService accountService() {
-        return new AccountService(
+        return new RetryingAccountService(new AccountServiceImpl(
                 connectionHolder(),
                 new JdbcAccounts(connectionHolder())
-        );
+        ));
     }
 
     private ConnectionHolder connectionHolder() {
