@@ -2,8 +2,6 @@ package com.revolut.accounts.webapp;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
-import com.revolut.accounts.core.Account;
-import com.revolut.accounts.core.Money;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,9 +35,13 @@ public class AccountEndpointTest {
     @Test
     public void canAddAccount() {
         Response response = createAccountResponse();
-        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.statusCode()).isEqualTo(201);
         AccountDto createdAccount = response.as(AccountDto.class);
         assertThat(createdAccount.getBalance()).isEqualTo(0);
+        AccountDto loadedByLocationHeader = given()
+                .get(response.getHeader("location"))
+                .as(AccountDto.class);
+        assertThat(loadedByLocationHeader).isEqualTo(createdAccount);
     }
 
     @Test
@@ -55,6 +57,59 @@ public class AccountEndpointTest {
                 .map(AccountDto::getId).collect(toList());
         assertThat(accountIds).contains(first.getId());
         assertThat(accountIds).contains(second.getId());
+    }
+
+    @Test
+    public void canAddMoneyToExistingAccount() {
+        AccountDto account = createAccount();
+        Response response = depositResponse(account.getId(), 5000);
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.as(AccountDto.class)).isEqualTo(new AccountDto(account.getId(), 5000));
+    }
+
+    @Test
+    public void canWithdrawMoneyFromAccount() {
+        AccountDto account = createAccount();
+        depositResponse(account.getId(), 7000);
+
+        Response response = given()
+                .param("amount", 5000)
+                .post("/withdraw/{id}", account.getId())
+                .andReturn();
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.as(AccountDto.class)).isEqualTo(new AccountDto(account.getId(), 2000));
+    }
+
+    @Test
+    public void canTransferMoneyFromOneAccountToAnother() {
+        AccountDto from = createAccount();
+        AccountDto to = createAccount();
+        depositResponse(from.getId(), 7000);
+
+        Response response = given()
+                .param("from", from.getId())
+                .param("to", to.getId())
+                .param("amount", 6000)
+                .post("/transfer");
+        assertThat(response.statusCode()).isEqualTo(204);
+
+        AccountDto fromAfter = getAccount(from.getId());
+        AccountDto toAfter = getAccount(to.getId());
+        assertThat(fromAfter.getBalance()).isEqualTo(1000);
+        assertThat(toAfter.getBalance()).isEqualTo(6000);
+    }
+
+    private AccountDto getAccount(UUID id) {
+        return given().get("/{id}", id).as(AccountDto.class);
+    }
+
+    private Response depositResponse(UUID id, int amount) {
+        return given()
+                .param("amount", amount)
+                .post("/deposit/{id}", id)
+                .andReturn();
     }
 
     private AccountDto createAccount() {

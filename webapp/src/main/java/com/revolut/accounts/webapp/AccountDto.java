@@ -1,15 +1,11 @@
 package com.revolut.accounts.webapp;
 
 import com.revolut.accounts.core.Account;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Data @AllArgsConstructor @NoArgsConstructor
 public class AccountDto {
     private UUID id;
     private long balance;

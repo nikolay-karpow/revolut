@@ -32,11 +32,31 @@ public class RetryingAccountService implements AccountService {
 
     @Override
     public void transfer(UUID from, UUID to, Money money) {
+        executeWithRetry(() -> {
+            origin.transfer(from, to, money);
+            return null;
+        });
+    }
+
+    @Override
+    public Account deposit(UUID id, Money money) {
+        return executeWithRetry(() -> origin.deposit(id, money));
+    }
+
+    @Override
+    public Account withdraw(UUID id, Money money) {
+        return executeWithRetry(() ->origin.withdraw(id, money));
+    }
+
+    private interface Retriable<T> {
+        T execute();
+    }
+
+    private <T> T executeWithRetry(Retriable<T> retriable) {
         int trialsCount = 0;
         while (true) {
             try {
-                origin.transfer(from, to, money);
-                return;
+                return retriable.execute();
             } catch (AccountOptimisticLockException e) {
                 trialsCount++;
                 if (trialsCount >= MAX_RETRY_COUNT) {

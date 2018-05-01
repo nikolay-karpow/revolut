@@ -36,4 +36,15 @@ public class AccountTest {
             assertThat(to.balance()).isEqualTo(new Money(70));
         }
     }
+
+    @Test
+    public void throwsWhenThereIsNotEnoughMoneyForWithdrawal() {
+        Account account = new Account(new Money(100));
+        try {
+            account.withdraw(new Money(101));
+            fail("Must not be executed");
+        } catch (AccountException e) {
+            assertThat(account.balance()).isEqualTo(new Money(100));
+        }
+    }
 }

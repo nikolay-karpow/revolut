@@ -50,7 +50,7 @@ public class RetryingAccountServiceTest {
     }
 
     @Test
-    public void noChangesAreLost_whenOptimisticLockExceptionHappens() throws InterruptedException {
+    public void noChangesAreLost_whenOptimisticLockExceptionHappensDuringTransfer() throws InterruptedException {
         ConnectionHolder connectionHolder = new ConnectionHolder(createDataSource());
         CountDownLatch countDownLatch = new CountDownLatch(2);
         Accounts accounts = new JdbcAccounts(connectionHolder) {
@@ -82,17 +82,61 @@ public class RetryingAccountServiceTest {
         assertThat(accountService.get(to.id()).balance()).isEqualTo(new Money(600));
     }
 
+    @Test
+    public void retriesToDoDeposit_ifOptimisticLockExceptionHappens() {
+        AccountService accountService = new RetryingAccountService(
+                throwingAccountService(3)
+        );
+
+        Account account = accountService.add(new Account(new Money(4500)));
+        Account afterDeposit = accountService.deposit(account.id(), new Money(4000));
+
+        assertThat(afterDeposit.balance()).isEqualTo(new Money(8500));
+    }
+
+    @Test
+    public void retriesToDoWithdrawal_ifOptimisticLockExceptionHappens() {
+        AccountService accountService = new RetryingAccountService(
+                throwingAccountService(3)
+        );
+
+        Account account = accountService.add(new Account(new Money(4500)));
+        Account afterWithdrawal = accountService.withdraw(account.id(), new Money(4000));
+
+        assertThat(afterWithdrawal.balance()).isEqualTo(new Money(500));
+    }
+
     private AccountService throwingAccountService(int failCount) {
         ConnectionHolder connectionHolder = new ConnectionHolder(createDataSource());
         return new AccountServiceImpl(connectionHolder, new JdbcAccounts(connectionHolder)) {
-            private AtomicInteger callsCounter = new AtomicInteger(0);
+            private final AtomicInteger transferCallsCounter = new AtomicInteger(0);
+            private final AtomicInteger depositCallsCounter = new AtomicInteger(0);
+            private final AtomicInteger withdrawalCallsCounter = new AtomicInteger(0);
 
             @Override
             public void transfer(UUID from, UUID to, Money money) {
-                if (callsCounter.getAndIncrement() < failCount) {
+                if (transferCallsCounter.getAndIncrement() < failCount) {
                     throw new AccountOptimisticLockException(from);
                 } else {
                     super.transfer(from, to, money);
+                }
+            }
+
+            @Override
+            public Account deposit(UUID id, Money money) {
+                if (depositCallsCounter.getAndIncrement() < failCount) {
+                    throw new AccountOptimisticLockException(id);
+                } else {
+                    return super.deposit(id, money);
+                }
+            }
+
+            @Override
+            public Account withdraw(UUID id, Money money) {
+                if (withdrawalCallsCounter.getAndIncrement() < failCount) {
+                    throw new AccountOptimisticLockException(id);
+                } else {
+                    return super.withdraw(id, money);
                 }
             }
         };

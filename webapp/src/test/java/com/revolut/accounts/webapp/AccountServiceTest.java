@@ -60,6 +60,28 @@ public class AccountServiceTest {
         assertThat(accountService.get(to.id()).balance()).isEqualTo(new Money(300));
     }
 
+    @Test
+    public void canDepositMoneyToAccount() {
+        AccountService accountService = accountService();
+        Account account = accountService.add(new Account(new Money(1000)));
+
+        Account afterDeposit = accountService.deposit(account.id(), new Money(500));
+
+        assertThat(afterDeposit.id()).isEqualTo(account.id());
+        assertThat(accountService.get(account.id()).balance()).isEqualTo(new Money(1500));
+    }
+
+    @Test
+    public void canWithdrawMoneyFromAccount() {
+        AccountService accountService = accountService();
+        Account account = accountService.add(new Account(new Money(1000)));
+
+        Account afterWithdrawal = accountService.withdraw(account.id(), new Money(600));
+
+        assertThat(afterWithdrawal.id()).isEqualTo(account.id());
+        assertThat(accountService.get(account.id()).balance()).isEqualTo(new Money(400));
+    }
+
     private AccountService accountService() {
         return new RetryingAccountService(new AccountServiceImpl(
                 connectionHolder(),

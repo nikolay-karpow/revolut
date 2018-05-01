@@ -23,14 +23,14 @@ public class Account {
     }
 
     public void transferTo(Account to, Money amount) {
-        if (balance.isLessThan(amount)) {
-            throw new AccountException("There is not enough money for transfer");
-        }
-        to.deposit(amount);
         withdraw(amount);
+        to.deposit(amount);
     }
 
     public void withdraw(Money amount) {
+        if (balance.isLessThan(amount)) {
+            throw new AccountException("There is not enough money");
+        }
         balance = balance.minus(amount);
     }
 

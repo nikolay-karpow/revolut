@@ -54,4 +54,24 @@ public class AccountServiceImpl implements AccountService {
         }).execute();
     }
 
+    @Override
+    public Account deposit(UUID id, Money money) {
+        return new Transaction<>(connectionHolder, () -> {
+            Account account = accounts.find(id);
+            account.deposit(money);
+            accounts.update(account);
+            return account;
+        }).execute();
+    }
+
+    @Override
+    public Account withdraw(UUID id, Money money) {
+        return new Transaction<>(connectionHolder, () -> {
+            Account account = accounts.find(id);
+            account.withdraw(money);
+            accounts.update(account);
+            return account;
+        }).execute();
+    }
+
 }

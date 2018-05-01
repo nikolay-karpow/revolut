@@ -14,4 +14,8 @@ public interface AccountService {
     Account get(UUID id);
 
     void transfer(UUID from, UUID to, Money money);
+
+    Account deposit(UUID id, Money money);
+
+    Account withdraw(UUID id, Money money);
 }
