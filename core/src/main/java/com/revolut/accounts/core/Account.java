@@ -3,6 +3,7 @@ package com.revolut.accounts.core;
 import java.util.UUID;
 
 public class Account {
+
     private final UUID id;
     private final int version;
     private Money balance;

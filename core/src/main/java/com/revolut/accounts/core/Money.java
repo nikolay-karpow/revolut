@@ -1,7 +1,6 @@
 package com.revolut.accounts.core;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 @EqualsAndHashCode @ToString
 public class Money {
