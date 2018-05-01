@@ -49,7 +49,7 @@ public class AccountEndpoint {
     }
 
     @POST
-    @Path("/account/deposit/{id}")
+    @Path("/account/{id}/deposit")
     @Produces(MediaType.APPLICATION_JSON)
     public AccountDto deposit(@PathParam("id") UUID id, @FormParam("amount") long amount) {
         return new AccountDto(
@@ -58,7 +58,7 @@ public class AccountEndpoint {
     }
 
     @POST
-    @Path("/account/withdraw/{id}")
+    @Path("/account/{id}/withdraw")
     @Produces(MediaType.APPLICATION_JSON)
     public AccountDto withdraw(@PathParam("id") UUID id, @FormParam("amount") long amount) {
         return new AccountDto(
@@ -67,10 +67,10 @@ public class AccountEndpoint {
     }
 
     @POST
-    @Path("/account/transfer")
+    @Path("/account/{id}/transferTo")
     @Produces(MediaType.APPLICATION_JSON)
     public void transfer(
-            @FormParam("from") UUID from,
+            @PathParam("id") UUID from,
             @FormParam("to") UUID to,
             @FormParam("amount") long amount
     ) {

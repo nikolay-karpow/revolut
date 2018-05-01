@@ -18,13 +18,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AccountEndpointTest {
 
     private static final int PORT = 8080;
-    private static final WebServer server = new WebServer(UriBuilder.fromUri("http://localhost/").port(PORT).build());
+    private static final WebServer server = new WebServer(
+            UriBuilder.fromUri("http://localhost/").port(PORT).build()
+    );
 
     @BeforeClass
     public static void beforeClass() throws Exception {
         server.start();
         RestAssured.port = PORT;
-        RestAssured.baseURI = "http://localhost:8080/account";
+        RestAssured.baseURI = "http://localhost/account";
     }
 
     @AfterClass
@@ -75,7 +77,7 @@ public class AccountEndpointTest {
 
         Response response = given()
                 .param("amount", 5000)
-                .post("/withdraw/{id}", account.getId())
+                .post("/{id}/withdraw", account.getId())
                 .andReturn();
 
         assertThat(response.statusCode()).isEqualTo(200);
@@ -118,20 +120,19 @@ public class AccountEndpointTest {
 
     private Response transfer(UUID from, UUID to, int amount) {
         return given()
-                    .param("from", from)
                     .param("to", to)
                     .param("amount", amount)
-                    .post("/transfer");
+                    .post("/{id}/transferTo", from);
     }
 
     private AccountDto getAccount(UUID id) {
         return given().get("/{id}", id).as(AccountDto.class);
     }
 
-    private Response depositResponse(UUID id, int amount) {
+    private Response depositResponse(UUID id, long amount) {
         return given()
                 .param("amount", amount)
-                .post("/deposit/{id}", id)
+                .post("/{id}/deposit", id)
                 .andReturn();
     }
 
