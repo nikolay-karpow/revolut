@@ -69,7 +69,7 @@ public class AccountEndpoint {
     @POST
     @Path("/account/transfer")
     @Produces(MediaType.APPLICATION_JSON)
-    public void withdraw(
+    public void transfer(
             @FormParam("from") UUID from,
             @FormParam("to") UUID to,
             @FormParam("amount") long amount

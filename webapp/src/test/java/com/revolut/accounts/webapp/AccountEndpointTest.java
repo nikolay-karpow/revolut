@@ -88,17 +88,40 @@ public class AccountEndpointTest {
         AccountDto to = createAccount();
         depositResponse(from.getId(), 7000);
 
-        Response response = given()
-                .param("from", from.getId())
-                .param("to", to.getId())
-                .param("amount", 6000)
-                .post("/transfer");
+        Response response = transfer(from.getId(), to.getId(), 6000);
         assertThat(response.statusCode()).isEqualTo(204);
 
         AccountDto fromAfter = getAccount(from.getId());
         AccountDto toAfter = getAccount(to.getId());
         assertThat(fromAfter.getBalance()).isEqualTo(1000);
         assertThat(toAfter.getBalance()).isEqualTo(6000);
+    }
+
+    @Test
+    public void transferReturnsNotFound_whenFromAccountDoesNotExist() {
+        AccountDto to = createAccount();
+        UUID from = UUID.randomUUID();
+        Response response = transfer(from, to.getId(), 5670);
+        assertThat(response.statusCode()).isEqualTo(404);
+        assertThat(response.asString()).isEqualTo("Account [" + from + "] is not found");
+    }
+
+    @Test
+    public void transferReturnsBadRequest_whenAmountIsNegative() {
+        AccountDto from = createAccount();
+        AccountDto to = createAccount();
+        depositResponse(from.getId(), 7000);
+
+        Response response = transfer(from.getId(), to.getId(), -6000);
+        assertThat(response.statusCode()).isEqualTo(400);
+    }
+
+    private Response transfer(UUID from, UUID to, int amount) {
+        return given()
+                    .param("from", from)
+                    .param("to", to)
+                    .param("amount", amount)
+                    .post("/transfer");
     }
 
     private AccountDto getAccount(UUID id) {

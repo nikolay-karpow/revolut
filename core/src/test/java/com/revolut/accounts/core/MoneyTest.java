@@ -30,4 +30,11 @@ public class MoneyTest {
         assertThat(a.isLessThan(c)).isFalse();
         assertThat(b.isLessThan(a)).isTrue();
     }
+
+    @Test
+    public void isNegative() {
+        assertThat(new Money(0).isNegative()).isFalse();
+        assertThat(new Money(10).isNegative()).isFalse();
+        assertThat(new Money(-10).isNegative()).isTrue();
+    }
 }

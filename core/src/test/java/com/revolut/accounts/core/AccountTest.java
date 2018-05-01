@@ -47,4 +47,27 @@ public class AccountTest {
             assertThat(account.balance()).isEqualTo(new Money(100));
         }
     }
+
+    @Test
+    public void throwsWhenTryingToWithdrawNegativeAmount() {
+        Account account = new Account(new Money(100));
+        try {
+            account.withdraw(new Money(-10));
+            fail("Must not be executed");
+        } catch (AccountOperationIllegalArgumentException e) {
+            assertThat(account.balance()).isEqualTo(new Money(100));
+            assertThat(e.getMessage()).isEqualTo("Can't withdraw negative amount");
+        }
+    }
+    @Test
+    public void throwsWhenTryingToDepositNegativeAmount() {
+        Account account = new Account(new Money(100));
+        try {
+            account.deposit(new Money(-10));
+            fail("Must not be executed");
+        } catch (AccountOperationIllegalArgumentException e) {
+            assertThat(account.balance()).isEqualTo(new Money(100));
+            assertThat(e.getMessage()).isEqualTo("Can't deposit negative amount");
+        }
+    }
 }

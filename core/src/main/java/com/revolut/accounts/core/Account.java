@@ -31,10 +31,20 @@ public class Account {
         if (balance.isLessThan(amount)) {
             throw new AccountException("There is not enough money");
         }
+        if (amount.isNegative()) {
+            throw new AccountOperationIllegalArgumentException(
+                    "Can't withdraw negative amount"
+            );
+        }
         balance = balance.minus(amount);
     }
 
     public void deposit(Money amount) {
+        if (amount.isNegative()) {
+            throw new AccountOperationIllegalArgumentException(
+                    "Can't deposit negative amount"
+            );
+        }
         balance = balance.plus(amount);
     }
 

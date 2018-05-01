@@ -25,4 +25,8 @@ public class Money {
     public long asLong() {
         return cents;
     }
+
+    public boolean isNegative() {
+        return cents < 0;
+    }
 }

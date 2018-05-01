@@ -14,5 +14,7 @@ public class ApplicationConfig extends ResourceConfig {
                 new AccountServiceImpl(connectionHolder, accounts)
         );
         register(new AccountEndpoint(accountService));
+        register(new AccountNotFoundExceptionMapper());
+        register(new AccountIllegalArgumentExceptionMapper());
     }
 }
