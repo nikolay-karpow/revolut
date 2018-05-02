@@ -85,7 +85,7 @@ public class RetryingAccountServiceTest {
     @Test
     public void retriesToDoDeposit_ifOptimisticLockExceptionHappens() {
         AccountService accountService = new RetryingAccountService(
-                throwingAccountService(3)
+                throwingAccountService(4)
         );
 
         Account account = accountService.add(new Account(new Money(4500)));
@@ -97,7 +97,7 @@ public class RetryingAccountServiceTest {
     @Test
     public void retriesToDoWithdrawal_ifOptimisticLockExceptionHappens() {
         AccountService accountService = new RetryingAccountService(
-                throwingAccountService(3)
+                throwingAccountService(4)
         );
 
         Account account = accountService.add(new Account(new Money(4500)));

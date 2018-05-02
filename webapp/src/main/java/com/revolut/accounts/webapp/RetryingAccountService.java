@@ -48,15 +48,16 @@ public class RetryingAccountService implements AccountService {
         return executeWithRetry(() ->origin.withdraw(id, money));
     }
 
-    private interface Retriable<T> {
+    @FunctionalInterface
+    private interface Retryable<T> {
         T execute();
     }
 
-    private <T> T executeWithRetry(Retriable<T> retriable) {
+    private <T> T executeWithRetry(Retryable<T> retryable) {
         int trialsCount = 0;
         while (true) {
             try {
-                return retriable.execute();
+                return retryable.execute();
             } catch (AccountOptimisticLockException e) {
                 trialsCount++;
                 if (trialsCount >= MAX_RETRY_COUNT) {

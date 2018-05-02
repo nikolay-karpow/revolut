@@ -12,6 +12,6 @@ public class AccountDto {
 
     public AccountDto(Account account) {
         this.id = account.id();
-        this.balance = account.balance().asLong();
+        this.balance = account.balance().asCents();
     }
 }

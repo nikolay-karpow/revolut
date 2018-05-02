@@ -21,24 +21,20 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account add(Account account) {
         return new Transaction<>(
-                connectionHolder,
-                () -> accounts.save(account)
+                connectionHolder, () -> accounts.save(account)
         ).execute();
     }
 
     @Override
     public List<Account> getAll() {
-        return new Transaction<>(
-                connectionHolder,
-                accounts::findAll
-        ).execute();
+        return new Transaction<>(connectionHolder, accounts::findAll)
+                .execute();
     }
 
     @Override
     public Account get(UUID id) {
         return new Transaction<>(
-                connectionHolder,
-                () -> accounts.find(id)
+                connectionHolder, () -> accounts.find(id)
         ).execute();
     }
 

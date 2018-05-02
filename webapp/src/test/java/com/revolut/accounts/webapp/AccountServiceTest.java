@@ -1,8 +1,6 @@
 package com.revolut.accounts.webapp;
 
 import com.revolut.accounts.core.Account;
-import com.revolut.accounts.core.AccountException;
-import com.revolut.accounts.core.Accounts;
 import com.revolut.accounts.core.Money;
 import com.revolut.accounts.persistence.ConnectionHolder;
 import com.revolut.accounts.persistence.JdbcAccounts;
@@ -14,22 +12,21 @@ import java.util.UUID;
 import static com.revolut.accounts.persistence.DataSourceFactory.createDataSource;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class AccountServiceTest {
 
     @Test
     public void canAddAccount() {
         AccountService accountService = accountService();
-        Account account = accountService.add(new Account(new Money(0)));
+        Account account = accountService.add(new Account());
         assertThat(account.balance()).isEqualTo(new Money(0));
     }
 
     @Test
     public void canGiveListOfAllAccounts() {
         AccountService accountService = accountService();
-        Account first = accountService.add(new Account(new Money(0)));
-        Account second = accountService.add(new Account(new Money(0)));
+        Account first = accountService.add(new Account());
+        Account second = accountService.add(new Account());
 
         List<UUID> ids = accountService.getAll().stream()
                 .map(Account::id).collect(toList());
@@ -83,13 +80,11 @@ public class AccountServiceTest {
     }
 
     private AccountService accountService() {
+        ConnectionHolder connectionHolder = new ConnectionHolder(createDataSource());
         return new RetryingAccountService(new AccountServiceImpl(
-                connectionHolder(),
-                new JdbcAccounts(connectionHolder())
+                connectionHolder,
+                new JdbcAccounts(connectionHolder)
         ));
     }
 
-    private ConnectionHolder connectionHolder() {
-        return new ConnectionHolder(createDataSource());
-    }
 }

@@ -25,7 +25,7 @@ public class AccountEndpoint {
     @Path("/account")
     @Produces(MediaType.APPLICATION_JSON)
     public Response createAccount() throws URISyntaxException {
-        Account account = accountService.add(new Account(new Money(0)));
+        Account account = accountService.add(new Account());
         return Response
                 .created(new URI("/account/" + account.id()))
                 .entity(new AccountDto(account))

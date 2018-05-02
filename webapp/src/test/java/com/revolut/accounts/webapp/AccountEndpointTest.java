@@ -18,15 +18,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AccountEndpointTest {
 
     private static final int PORT = 8080;
+    private static final String HOST = "http://localhost/";
     private static final WebServer server = new WebServer(
-            UriBuilder.fromUri("http://localhost/").port(PORT).build()
+            UriBuilder.fromUri(HOST).port(PORT).build(), new ApplicationConfig()
     );
 
     @BeforeClass
     public static void beforeClass() throws Exception {
         server.start();
         RestAssured.port = PORT;
-        RestAssured.baseURI = "http://localhost/account";
+        RestAssured.baseURI = HOST + "account";
     }
 
     @AfterClass
@@ -37,6 +38,7 @@ public class AccountEndpointTest {
     @Test
     public void canAddAccount() {
         Response response = createAccountResponse();
+
         assertThat(response.statusCode()).isEqualTo(201);
         AccountDto createdAccount = response.as(AccountDto.class);
         assertThat(createdAccount.getBalance()).isEqualTo(0);

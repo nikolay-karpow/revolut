@@ -24,12 +24,22 @@ public class AccountTest {
     }
 
     @Test
+    public void accountCanTransferAllMoneyToAnotherAccount() {
+        Account from = new Account(new Money(1270));
+        Account to = new Account(new Money(70));
+        from.transferTo(to, new Money(1270));
+
+        assertThat(from.balance()).isEqualTo(new Money(0));
+        assertThat(to.balance()).isEqualTo(new Money(1340));
+    }
+
+    @Test
     public void throwsWhenThereIsNotEnoughMoneyForTransfer() {
         Account from = new Account(new Money(100));
         Account to = new Account(new Money(70));
 
         try {
-            from.transferTo(to, new Money(270));
+            from.transferTo(to, new Money(101));
             fail("Must not be executed");
         } catch (AccountException e) {
             assertThat(from.balance()).isEqualTo(new Money(100));
@@ -52,7 +62,7 @@ public class AccountTest {
     public void throwsWhenTryingToWithdrawNegativeAmount() {
         Account account = new Account(new Money(100));
         try {
-            account.withdraw(new Money(-10));
+            account.withdraw(new Money(-1));
             fail("Must not be executed");
         } catch (AccountOperationIllegalArgumentException e) {
             assertThat(account.balance()).isEqualTo(new Money(100));
@@ -63,7 +73,7 @@ public class AccountTest {
     public void throwsWhenTryingToDepositNegativeAmount() {
         Account account = new Account(new Money(100));
         try {
-            account.deposit(new Money(-10));
+            account.deposit(new Money(-1));
             fail("Must not be executed");
         } catch (AccountOperationIllegalArgumentException e) {
             assertThat(account.balance()).isEqualTo(new Money(100));

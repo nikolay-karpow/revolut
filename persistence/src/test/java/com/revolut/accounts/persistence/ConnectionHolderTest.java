@@ -11,10 +11,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectionHolderTest {
     @Test
-    public void givesConnectionFromDataSource_whenThereIsNoExistingOne() {
+    public void givesConnectionFromDataSource_whenThereIsNoExistingOne() throws SQLException {
         ConnectionHolder connectionHolder = new ConnectionHolder(createDataSource());
         Connection connection = connectionHolder.getConnection();
         assertThat(connection).isNotNull();
+        assertThat(connection.isValid(1000)).isTrue();
     }
 
     @Test
@@ -56,6 +57,6 @@ public class ConnectionHolderTest {
         connectionHolder.closeConnection(c1);
         Connection c2 = connectionHolder.getConnection();
         assertThat(c2).isNotSameAs(c1);
-        assertThat(c2.isClosed()).isFalse();
+        assertThat(c2.isValid(1000)).isTrue();
     }
 }

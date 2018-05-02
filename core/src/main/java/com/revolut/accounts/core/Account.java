@@ -8,6 +8,10 @@ public class Account {
     private final int version;
     private Money balance;
 
+    public Account() {
+        this(new Money(0));
+    }
+
     public Account(Money balance) {
         this(UUID.randomUUID(), 0, balance);
     }

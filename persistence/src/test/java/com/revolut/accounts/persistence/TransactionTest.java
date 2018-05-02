@@ -41,8 +41,8 @@ public class TransactionTest {
             fail("Must not be executed");
         } catch (AccountException e) {
             assertThat(e).isSameAs(exception);
+            assertThat(connection.isClosed()).isTrue();
         }
-        assertThat(connection.isClosed()).isTrue();
     }
 
     private ConnectionHolder connectionHolder() {

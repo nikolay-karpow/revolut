@@ -38,8 +38,10 @@ public class JdbcAccountsTest {
         Account account = accounts.save(new Account(new Money(654)));
         account.deposit(new Money(100));
         Account saved = accounts.update(account);
+        Account loaded = accounts.find(account.id());
 
         assertThat(saved.balance()).isEqualTo(new Money(754));
+        assertThat(loaded.balance()).isEqualTo(new Money(754));
     }
 
     @Test
@@ -55,17 +57,13 @@ public class JdbcAccountsTest {
     }
 
     @Test
-    public void throwsIfAccountWasChangedDuringUpdate() throws InterruptedException {
+    public void throwsIfAccountWasChangedDuringUpdate() {
         Accounts accounts = accounts();
         Account original = accounts.save(new Account(new Money(654)));
 
-        Thread thread = new Thread(() -> {
-            Account copy = accounts.find(original.id());
-            copy.deposit(new Money(700));
-            accounts.update(copy);
-        });
-        thread.start();
-        thread.join();
+        Account copy = accounts.find(original.id());
+        copy.deposit(new Money(700));
+        accounts.update(copy);
 
         try {
             original.deposit(new Money(100));
@@ -80,13 +78,13 @@ public class JdbcAccountsTest {
     @Test
     public void canFindAccountById() {
         Accounts accounts = accounts();
-        Account first = accounts.save(new Account(new Money(100)));
+        Account added = accounts.save(new Account(new Money(100)));
         accounts.save(new Account(new Money(500)));
 
-        Account found = accounts.find(first.id());
+        Account found = accounts.find(added.id());
 
-        assertThat(found.id()).isEqualTo(first.id());
-        assertThat(found.balance()).isEqualTo(first.balance());
+        assertThat(found.id()).isEqualTo(added.id());
+        assertThat(found.balance()).isEqualTo(new Money(100));
     }
 
     @Test

@@ -59,7 +59,7 @@ public class JdbcAccounts implements Accounts {
         return execute(SAVE_NEW_ACCOUNT, statement -> {
             statement.setObject(1, account.id());
             statement.setInt(2, account.version());
-            statement.setObject(3, account.balance().asLong());
+            statement.setObject(3, account.balance().asCents());
             statement.execute();
             return account;
         });
@@ -70,7 +70,7 @@ public class JdbcAccounts implements Accounts {
         return execute(UPDATE_ACCOUNT, statement -> {
             int oldVersion = account.version();
             int newVersion = oldVersion + 1;
-            statement.setLong(1, account.balance().asLong());
+            statement.setLong(1, account.balance().asCents());
             statement.setInt(2, newVersion);
             statement.setObject(3, account.id());
             statement.setInt(4, oldVersion);

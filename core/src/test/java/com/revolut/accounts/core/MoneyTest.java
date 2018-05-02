@@ -34,7 +34,9 @@ public class MoneyTest {
     @Test
     public void isNegative() {
         assertThat(new Money(0).isNegative()).isFalse();
-        assertThat(new Money(10).isNegative()).isFalse();
+        assertThat(new Money(1).isNegative()).isFalse();
+        assertThat(new Money(100).isNegative()).isFalse();
+        assertThat(new Money(-1).isNegative()).isTrue();
         assertThat(new Money(-10).isNegative()).isTrue();
     }
 }

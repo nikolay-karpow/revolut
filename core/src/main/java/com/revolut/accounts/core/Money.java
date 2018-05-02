@@ -22,7 +22,7 @@ public class Money {
         return cents < other.cents;
     }
 
-    public long asLong() {
+    public long asCents() {
         return cents;
     }
 
